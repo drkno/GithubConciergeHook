@@ -23,6 +23,7 @@ const verifyStatus = (event, master, pr) => {
 };
 
 server.webhookHandler.on('pull_request', event => {
+    console.log(event);
     const name = event.repository.full_name;
     const master = event.repository.default_branch;
     const remoteName = event.pull_request.head.repo.full_name;
