@@ -24,10 +24,10 @@ const verifyStatus = (event, master, pr) => {
 
 server.webhookHandler.on('pull_request', event => {
     console.log(event);
-    const name = event.repository.full_name;
-    const master = event.repository.default_branch;
-    const remoteName = event.pull_request.head.repo.full_name;
-    const current = event.pull_request.head.ref;
+    const name = event.payload.repository.full_name;
+    const master = event.payload.repository.default_branch;
+    const remoteName = event.payload.pull_request.head.repo.full_name;
+    const current = event.payload.pull_request.head.ref;
 
     if (remoteName === name && master === current) {
         return sendStatus(true, event);
