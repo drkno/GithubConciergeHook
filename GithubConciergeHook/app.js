@@ -27,6 +27,9 @@ if (!config.token) {
         },
         (err, res) => {
             if (res && res.token) {
+                if (!res.token) {
+                    throw res;
+                }
                 config.token = res.token;
                 fs.writeFileSync('config.json', JSON.stringify(config, null, 4));
                 github.authenticate({
