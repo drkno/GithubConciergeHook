@@ -26,7 +26,7 @@ if (!config.token) {
             note_url: 'https://github.com/mrkno/GithubConciergeHook'
         },
         (err, res) => {
-            if (res.token) {
+            if (res && res.token) {
                 config.token = res.token;
                 fs.writeFileSync('config.json', JSON.stringify(config, null, 4));
                 github.authenticate({
