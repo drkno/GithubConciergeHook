@@ -1,9 +1,23 @@
 {
   "name": "github-concierge-hook",
-  "version": "0.0.0",
-  "description": "GithubConciergeHook",
-  "main": "app.js",
-  "author": {
-    "name": "Matthew"
-  }
+  "version": "1.0.0",
+  "description": "",
+  "main": "GithubConciergeHook/app.js",
+  "dependencies": {
+    "github-webhook": "^1.1.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mrkno/GithubConciergeHook.git"
+  },
+  "author": "Matthew Knox",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mrkno/GithubConciergeHook/issues"
+  },
+  "homepage": "https://github.com/mrkno/GithubConciergeHook#readme"
 }
