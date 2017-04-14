@@ -4,6 +4,21 @@ const config = require('./config.json');
 const webhooks = require('github-webhook');
 const request = require('request');
 const semver = require('semver');
+const githubApi = require('github');
+
+const github = new githubApi({
+    protocol: 'https',
+    host: 'api.github.com',
+    headers: {
+        'User-Agent': 'GithubConciergeHook'
+    }
+});
+
+github.authenticate({
+    type: 'oauth',
+    key: config.clientId,
+    secret: config.clientSecret
+});
 
 const server = webhooks(config);
 
@@ -14,21 +29,13 @@ const getPackageJson = (name, branch, callback) => {
 };
 
 const sendStatus = (status, event) => {
-    const data = {
-        status: status,
+    github.repos.createStatus({
+        state: status,
         context: 'package.json Version',
-        description: status === 'success' ? 'The version number has been updated.' : 'Please update the package.json version number.'
-    };
-    request.post({
-        url: event.payload.pull_request.statuses_url,
-        headers: {
-            Authorization: `token ${config.token}`,
-            'Content-Type': 'application/json',
-            'User-Agent': 'GithubConciergeHook',
-            body: data
-        }
-    }, (_, __, body) => {
-        console.log(body);
+        description: status === 'success' ? 'The version number has been updated.' : 'Please update the package.json version number.',
+        owner: event.payload.repository.full_name.split('/')[0],
+        repo: event.payload.repository.full_name.split('/')[1],
+        sha: event.payload.pull_request.head.sha
     });
 };
 
