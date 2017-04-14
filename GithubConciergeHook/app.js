@@ -5,19 +5,39 @@ const webhooks = require('github-webhook');
 const request = require('request');
 const semver = require('semver');
 const githubApi = require('github');
+const fs = require('fs');
 
 const github = new githubApi({
-    protocol: 'https',
-    host: 'api.github.com',
     headers: {
         'User-Agent': 'GithubConciergeHook'
     }
 });
 
+if (!config.token) {
+    github.authenticate({
+        type: 'oauth',
+        key: config.clientId,
+        secret: config.clientSecret
+    });
+
+    github.authorization.create({
+        scopes: ['public_repo', 'repo:status', 'repo'],
+        note: 'Reporting versioning status',
+        note_url: 'https://github.com/mrkno/GithubConciergeHook'
+    }, (err, res) => {
+        if (res.token) {
+            config.token = res.token;
+            fs.writeFileSync('config.json', JSON.stringify(config, null, 4));
+        }
+        else {
+            throw err;
+        }
+    });
+}
+
 github.authenticate({
     type: 'oauth',
-    key: config.clientId,
-    secret: config.clientSecret
+    token: config.token
 });
 
 const server = webhooks(config);
