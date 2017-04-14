@@ -21,24 +21,28 @@ if (!config.token) {
     });
 
     github.authorization.create({
-        scopes: ['public_repo', 'repo:status', 'repo'],
-        note: 'Reporting versioning status',
-        note_url: 'https://github.com/mrkno/GithubConciergeHook'
-    }, (err, res) => {
-        if (res.token) {
-            config.token = res.token;
-            fs.writeFileSync('config.json', JSON.stringify(config, null, 4));
-        }
-        else {
-            throw err;
-        }
+            scopes: ['public_repo', 'repo:status', 'repo'],
+            note: 'Reporting versioning status',
+            note_url: 'https://github.com/mrkno/GithubConciergeHook'
+        },
+        (err, res) => {
+            if (res.token) {
+                config.token = res.token;
+                fs.writeFileSync('config.json', JSON.stringify(config, null, 4));
+                github.authenticate({
+                    type: 'oauth',
+                    token: config.token
+                });
+            } else {
+                throw err;
+            }
+        });
+} else {
+    github.authenticate({
+        type: 'oauth',
+        token: config.token
     });
 }
-
-github.authenticate({
-    type: 'oauth',
-    token: config.token
-});
 
 const server = webhooks(config);
 
