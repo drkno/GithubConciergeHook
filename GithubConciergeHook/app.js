@@ -18,9 +18,9 @@ if (!config.token) {
         type: 'oauth',
         key: config.clientId,
         secret: config.clientSecret
-    });
-
-    github.authorization.create({
+    }, (e, a) => {
+        if (e) throw [e, a];
+        github.authorization.create({
             scopes: ['public_repo', 'repo:status', 'repo'],
             note: 'Reporting versioning status',
             note_url: 'https://github.com/mrkno/GithubConciergeHook'
@@ -40,6 +40,7 @@ if (!config.token) {
                 throw err;
             }
         });
+    });
 } else {
     github.authenticate({
         type: 'oauth',
