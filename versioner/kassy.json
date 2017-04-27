@@ -1,0 +1,5 @@
+{
+    "name": "versioner",
+    "version": "1.0.0",
+    "startup": "ver.js"
+}

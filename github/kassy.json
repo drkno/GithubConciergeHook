@@ -1,0 +1,6 @@
+{
+    "name": "github",
+    "version": "1.0.0",
+    "startup": "github.js",
+    "type": "integration"
+}
