@@ -15,6 +15,18 @@ const getJsonFile = (file, name, branch, ...other) => {
     });    
 };
 
+const toSemver = input => {
+    input += '';
+    if (/^[0-9]+(\.[0-9]+)?$/.test(input)) {
+        const spl = input.split('.');
+        for (let i = spl.length; i < 3; i++) {
+            spl.push('0');
+        }
+        return spl.join('.');
+    }
+    return input;
+};
+
 exports.run = (api, event) => {
     const name = event.payload.repository.full_name;
     const master = event.payload.repository.default_branch;
@@ -25,7 +37,7 @@ exports.run = (api, event) => {
     api.createStatus('pending', $$`context`, $$`pending`, name, sha);
     
     const verifyStatus = data => {
-        if (semver.lt(data[0].version, data[1].version)) {
+        if (semver.lt(toSemver(data[0].version), toSemver(data[1].version))) {
             api.createStatus('success', $$`context`, $$`success`, name, sha);
         }
         else {
@@ -39,7 +51,7 @@ exports.run = (api, event) => {
         if (!file) {
             return api.createStatus('success', $$`context`, $$`success`, name, sha);
         }
-        getJsonFile(file, name, master)
+        return getJsonFile(file, name, master)
             .then(data => getJsonFile(file, remoteName, current, data))
             .then(verifyStatus)
             .catch(check);
