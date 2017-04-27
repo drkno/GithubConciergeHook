@@ -22,6 +22,10 @@ const server = webhooks(config);
 
 const getPackageJson = (name, branch, callback) => {
     request(`https://raw.githubusercontent.com/${name}/${branch}/package.json`, (error, response, body) => {
+        if (error) {
+            console.error('ERR -> ' + error);
+            return;
+        }
         callback(JSON.parse(body));
     });
 };
