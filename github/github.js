@@ -14,7 +14,7 @@ class GithubIntegration {
             token: this.config.token
         });
         this._server = webhooks(this.config);
-        this._server.webhookHandler.on('pull_request', this._on_web_event.bind('pull_request'));
+        this._server.webhookHandler.on('pull_request', this._on_web_event.bind(this, 'pull_request'));
         this._server.listen(this.config.port);
     }
 
