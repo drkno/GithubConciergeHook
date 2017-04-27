@@ -13,38 +13,10 @@ const github = new githubApi({
     }
 });
 
-if (!config.token) {
-    github.authenticate({
-        type: 'oauth',
-        key: config.clientId,
-        secret: config.clientSecret
-    });
-    github.authorization.create({
-        scopes: ['public_repo', 'repo:status', 'repo'],
-        note: 'Reporting versioning status',
-        note_url: 'https://github.com/mrkno/GithubConciergeHook'
-    },
-    (err, res) => {
-        if (res && res.token) {
-            if (!res.token) {
-                throw res;
-            }
-            config.token = res.token;
-            fs.writeFileSync('config.json', JSON.stringify(config, null, 4));
-            github.authenticate({
-                type: 'oauth',
-                token: config.token
-            });
-        } else {
-            throw err;
-        }
-    });
-} else {
-    github.authenticate({
-        type: 'oauth',
-        token: config.token
-    });
-}
+github.authenticate({
+    type: 'oauth',
+    token: config.token
+});
 
 const server = webhooks(config);
 
