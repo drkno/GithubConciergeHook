@@ -2,7 +2,7 @@ const request = require('request');
 const semver = require('semver');
 const files = ['package.json', 'kassy.json', 'bower.json'];
 
-exports.match = event => event.event_name === 'pull_request';
+exports.match = event => event.thread_id === 'pull_request';
 
 const getJsonFile = (file, name, branch, ...other) => {
     return new Promise(resolve => {

@@ -1,7 +1,7 @@
 const webhooks = require('github-webhook');
 const GithubApi = require('github');
 
-class GithubIntegration {   
+class GithubIntegration extends shim {   
     start(callback) {
         this._callback = callback;
         this._github = new GithubApi({
@@ -19,7 +19,7 @@ class GithubIntegration {
     }
 
     _on_web_event(event_name, event) {
-        event.event_name = event_name;
+        event.thread_id = event_name;
         this._callback(this, event);
     }
 
@@ -31,6 +31,10 @@ class GithubIntegration {
     
     getApi() {
         return this;
+    }
+
+    sendMessage(message, thread) {
+        console.warn(`${thread}: ${message}`);
     }
 
     createStatus(state, context, description, repo, sha) {
