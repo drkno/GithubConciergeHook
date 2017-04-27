@@ -39,7 +39,7 @@ class GithubIntegration extends shim {
 
     createStatus(state, context, description, repo, sha) {
         this._github.repos.createStatus({
-            state: status,
+            state: state,
             context: context,
             description: description,
             owner: repo.split('/')[0],
