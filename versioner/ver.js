@@ -10,7 +10,7 @@ const getJsonFile = (file, name, branch) => {
         LOG.debug('Getting JSON file from ' + url);
         request(url, (error, response, body) => {
             if (error || !body || body === null || response.statusCode >= 400) {
-                LOG.debug(`An error occurred while getting the file (response=${response ? response.statusCode : '???'}).`);
+                LOG.silly(`An error occurred while getting the file (response=${response ? response.statusCode : '???'}).`);
                 return reject(error);
             }
             LOG.silly(body);
@@ -40,24 +40,26 @@ exports.run = (api, event) => {
 
     api.createStatus('pending', $$`context`, $$`pending`, name, sha);
 
-    const verifyStatus = (master, branch) => {
+    const verifyStatus = (complete, master, branch) => {
         LOG.debug(`Comparing version ${master.version} to ${branch.version}.`);
-        return semver.lt(toSemver(master.version), toSemver(branch.version)) ? 'success' : 'failure';
+        complete(semver.lt(toSemver(master.version), toSemver(branch.version)) ? 'success' : 'failure');
     };
 
-    const skipStatus = file => {
+    const skipStatus = (complete, file) => {
         LOG.debug(`Skipping ${file} due to errors.`);
-        return false;
+        complete(false);
     };
     
     const promises = [];
     for (let file of files) {
-        promises.push(Promise.all([
-            getJsonFile(file, name, master),
-            getJsonFile(file, remoteName, current)
-        ])
-        .catch(skipStatus.bind(this, file))
-        .then(verifyStatus));
+        promises.push(new Promise(resolve => {
+            Promise.all([
+                getJsonFile(file, name, master),
+                getJsonFile(file, remoteName, current)
+            ])
+            .catch(skipStatus.bind(this, resolve, file))
+            .then(verifyStatus.bind(this, resolve));
+        }));
     }
     Promise.all(promises).then(res => {
         if (res.some(r => 'failure')) {
@@ -72,7 +74,7 @@ exports.run = (api, event) => {
             LOG.debug('Sending success status based on no version number being found.');
             api.createStatus('success', $$`context`, $$`invalid`, name, sha);
         }
-    }).catch(() => {
-        LOG.error('It is not supposed to be possible to error in this way.... what did you dooooo?!');
+    }).catch((...errs) => {
+        LOG.error('It is not supposed to be possible to error in this way.... what did you dooooo?!\n' + errs);
     });
 };
