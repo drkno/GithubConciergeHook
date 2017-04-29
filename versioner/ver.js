@@ -41,8 +41,8 @@ exports.run = (api, event) => {
     api.createStatus('pending', $$`context`, $$`pending`, name, sha);
 
     const verifyStatus = (complete, data) => {
-        LOG.debug(`Comparing version ${data[0].version} to ${data[1].version}.`);
         try {
+            LOG.debug(`Comparing version ${data[0].version} to ${data[1].version}.`);
             complete(semver.lt(toSemver(data[0].version), toSemver(data[1].version)) ? 'success' : 'failure');
         }
         catch (e) {
@@ -63,8 +63,10 @@ exports.run = (api, event) => {
                 getJsonFile(file, name, master),
                 getJsonFile(file, remoteName, current)
             ])
-            .catch(skipStatus.bind(this, resolve, file))
-            .then(verifyStatus.bind(this, resolve));
+            .then(
+                verifyStatus.bind(this, resolve),
+                skipStatus.bind(this, resolve, file)
+            );
         }));
     }
     Promise.all(promises).then(res => {
@@ -80,7 +82,7 @@ exports.run = (api, event) => {
             LOG.debug('Sending success status based on no version number being found.');
             api.createStatus('success', $$`context`, $$`invalid`, name, sha);
         }
-    }).catch((...errs) => {
+    }, (...errs) => {
         LOG.error('It is not supposed to be possible to error in this way.... what did you dooooo?!\n' + errs);
     });
 };
