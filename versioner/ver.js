@@ -60,4 +60,5 @@ exports.run = (api, event) => {
             .then(verifyStatus)
             .catch(check);
     };
+    check();
 };
