@@ -56,7 +56,7 @@ exports.run = (api, event) => {
             getJsonFile(file, name, master),
             getJsonFile(file, remoteName, current)
         ])
-        .catch(skipStatus);
+        .catch(skipStatus)
         .then(verifyStatus));
     }
     Promise.all(promises).then(res => {
