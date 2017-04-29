@@ -5,13 +5,13 @@ const files = ['package.json', 'kassy.json', 'bower.json'];
 exports.match = event => event.thread_id === 'pull_request';
 
 const getJsonFile = (file, name, branch, ...other) => {
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
         const url = `https://raw.githubusercontent.com/${name}/${branch}/${file}`;
         LOG.debug('Getting JSON file from ' + url);
         request(url, (error, response, body) => {
-            if (error || !body || body === null) {
-                LOG.error('An error occurred while getting the file.');
-                throw new Error(error);
+            if (error || !body || body === null || response.statusCode >= 400) {
+                LOG.error(`An error occurred while getting the file (response=${response ? response.statusCode : '???'}).`);
+                return reject(error);
             }
             resolve(other.concat(JSON.parse(body)));
         });
