@@ -6,8 +6,11 @@ exports.match = event => event.thread_id === 'pull_request';
 
 const getJsonFile = (file, name, branch, ...other) => {
     return new Promise(resolve => {
-        request(`https://raw.githubusercontent.com/${name}/${branch}/${file}`, (error, response, body) => {
+        const url = `https://raw.githubusercontent.com/${name}/${branch}/${file}`;
+        LOG.debug('Getting JSON file from ' + url);
+        request(url, (error, response, body) => {
             if (error || !body || body === null) {
+                LOG.error('An error occurred while getting the file.');
                 throw new Error(error);
             }
             resolve(other.concat(JSON.parse(body)));
@@ -37,6 +40,7 @@ exports.run = (api, event) => {
     api.createStatus('pending', $$`context`, $$`pending`, name, sha);
     
     const verifyStatus = data => {
+        LOG.debug(`Comparing version ${data[0].version} to ${data[1].version}.`);
         if (semver.lt(toSemver(data[0].version), toSemver(data[1].version))) {
             api.createStatus('success', $$`context`, $$`success`, name, sha);
         }
