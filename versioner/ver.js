@@ -45,7 +45,7 @@ exports.run = (api, event) => {
         return semver.lt(toSemver(master.version), toSemver(branch.version)) ? 'success' : 'failure';
     };
 
-    const skipStatus = () => {
+    const skipStatus = file => {
         LOG.debug(`Skipping ${file} due to errors.`);
         return false;
     };
@@ -56,7 +56,7 @@ exports.run = (api, event) => {
             getJsonFile(file, name, master),
             getJsonFile(file, remoteName, current)
         ])
-        .catch(skipStatus)
+        .catch(skipStatus.bind(this, file))
         .then(verifyStatus));
     }
     Promise.all(promises).then(res => {
@@ -72,5 +72,7 @@ exports.run = (api, event) => {
             LOG.debug('Sending success status based on no version number being found.');
             api.createStatus('success', $$`context`, $$`invalid`, name, sha);
         }
+    }).catch(() => {
+        LOG.error('It is not supposed to be possible to error in this way.... what did you dooooo?!');
     });
 };
