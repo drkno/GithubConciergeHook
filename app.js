@@ -11,5 +11,9 @@ const platform = concierge({
     ],
     integrations: ['github'],
     debug: 'silly',
-    timestamp: true
+    timestamp: true,
+    loopback: {
+        enabled: false,
+        pipe: false
+    }
 });
