@@ -40,16 +40,16 @@ exports.run = (api, event) => {
 
     api.createStatus('pending', $$`context`, $$`pending`, name, sha);
 
-    const verifyStatus = (complete, master, branch) => {
-        LOG.debug(`Comparing version ${master.version} to ${branch.version}.`);
-        complete(semver.lt(toSemver(master.version), toSemver(branch.version)) ? 'success' : 'failure');
+    const verifyStatus = (complete, data) => {
+        LOG.debug(`Comparing version ${data[0].version} to ${data[1].version}.`);
+        complete(semver.lt(toSemver(data[0].version), toSemver(data[1].version)) ? 'success' : 'failure');
     };
 
     const skipStatus = (complete, file) => {
         LOG.debug(`Skipping ${file} due to errors.`);
         complete(false);
     };
-    
+
     const promises = [];
     for (let file of files) {
         promises.push(new Promise(resolve => {
