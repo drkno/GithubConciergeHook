@@ -4,16 +4,17 @@ const files = ['package.json', 'kassy.json', 'bower.json'];
 
 exports.match = event => event.thread_id === 'pull_request';
 
-const getJsonFile = (file, name, branch, ...other) => {
+const getJsonFile = (file, name, branch) => {
     return new Promise((resolve, reject) => {
         const url = `https://raw.githubusercontent.com/${name}/${branch}/${file}`;
         LOG.debug('Getting JSON file from ' + url);
         request(url, (error, response, body) => {
             if (error || !body || body === null || response.statusCode >= 400) {
-                LOG.error(`An error occurred while getting the file (response=${response ? response.statusCode : '???'}).`);
+                LOG.debug(`An error occurred while getting the file (response=${response ? response.statusCode : '???'}).`);
                 return reject(error);
             }
-            resolve(other.concat(JSON.parse(body)));
+            LOG.silly(body);
+            resolve(JSON.parse(body));
         });
     });    
 };
@@ -38,27 +39,38 @@ exports.run = (api, event) => {
     const sha = event.payload.pull_request.head.sha;
 
     api.createStatus('pending', $$`context`, $$`pending`, name, sha);
+
+    const verifyStatus = (master, branch) => {
+        LOG.debug(`Comparing version ${master.version} to ${branch.version}.`);
+        return semver.lt(toSemver(master.version), toSemver(branch.version)) ? 'success' : 'failure';
+    };
+
+    const skipStatus = () => {
+        LOG.debug(`Skipping ${file} due to errors.`);
+        return false;
+    };
     
-    const verifyStatus = data => {
-        LOG.debug(`Comparing version ${data[0].version} to ${data[1].version}.`);
-        if (semver.lt(toSemver(data[0].version), toSemver(data[1].version))) {
+    const promises = [];
+    for (let file of files) {
+        promises.push(Promise.all([
+            getJsonFile(file, name, master),
+            getJsonFile(file, remoteName, current)
+        ])
+        .catch(skipStatus);
+        .then(verifyStatus));
+    }
+    Promise.all(promises).then(res => {
+        if (res.some(r => 'failure')) {
+            LOG.debug('Sending failure status.');
+            api.createStatus('failure', $$`context`, $$`failure`, name, sha);
+        }
+        else if (res.some(r => 'success')) {
+            LOG.debug('Sending success status.');
             api.createStatus('success', $$`context`, $$`success`, name, sha);
         }
         else {
-            api.createStatus('failure', $$`context`, $$`failure`, name, sha);
+            LOG.debug('Sending success status based on no version number being found.');
+            api.createStatus('success', $$`context`, $$`invalid`, name, sha);
         }
-    };
-    
-    let i = 0;
-    const check = () => {
-        const file = files[i++];
-        if (!file) {
-            return api.createStatus('success', $$`context`, $$`success`, name, sha);
-        }
-        return getJsonFile(file, name, master)
-            .then(data => getJsonFile(file, remoteName, current, data))
-            .then(verifyStatus)
-            .catch(check);
-    };
-    check();
+    });
 };

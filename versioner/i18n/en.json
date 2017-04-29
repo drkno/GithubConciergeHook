@@ -1,6 +1,7 @@
 {
     "pending": "Checking the version number...",
     "success": "The version number has been incremented.",
-    "failure": "Please increment the version number before merging.",
-    "context": "Version number increment verification."
+    "failure": "Please increment the version number.",
+    "invalid": "There is no version number to check.",
+    "context": "Version Number"
 }
