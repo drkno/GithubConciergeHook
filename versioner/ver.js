@@ -42,7 +42,13 @@ exports.run = (api, event) => {
 
     const verifyStatus = (complete, data) => {
         LOG.debug(`Comparing version ${data[0].version} to ${data[1].version}.`);
-        complete(semver.lt(toSemver(data[0].version), toSemver(data[1].version)) ? 'success' : 'failure');
+        try {
+            complete(semver.lt(toSemver(data[0].version), toSemver(data[1].version)) ? 'success' : 'failure');
+        }
+        catch (e) {
+            LOG.debug('Failed to compare version numbers.');
+            complete(false);
+        }
     };
 
     const skipStatus = (complete, file) => {
