@@ -32,13 +32,12 @@ const toSemver = input => {
 };
 
 exports.run = (api, event) => {
-    const name = event.payload.repository.full_name;
-    const master = event.payload.repository.default_branch;
-    const remoteName = event.payload.pull_request.head.repo.full_name;
-    const current = event.payload.pull_request.head.ref;
-    const sha = event.payload.pull_request.head.sha;
+    const masterName = event.payload.repository.full_name;
+    const masterSha = event.payload.pull_request.base.sha;
+    const commitName = event.payload.pull_request.head.repo.full_name;
+    const commitSha = event.payload.pull_request.head.sha;
 
-    api.createStatus('pending', $$`context`, $$`pending`, name, sha);
+    api.createStatus('pending', $$`context`, $$`pending`, masterName, commitSha);
 
     const verifyStatus = (complete, data) => {
         try {
@@ -60,8 +59,8 @@ exports.run = (api, event) => {
     for (let file of files) {
         promises.push(new Promise(resolve => {
             Promise.all([
-                getJsonFile(file, name, master),
-                getJsonFile(file, remoteName, current)
+                getJsonFile(file, masterName, masterSha),
+                getJsonFile(file, commitName, commitSha)
             ])
             .then(
                 verifyStatus.bind(this, resolve),
@@ -72,15 +71,15 @@ exports.run = (api, event) => {
     Promise.all(promises).then(res => {
         if (res.some(r => r === 'failure')) {
             LOG.debug('Sending failure status.');
-            api.createStatus('failure', $$`context`, $$`failure`, name, sha);
+            api.createStatus('failure', $$`context`, $$`failure`, masterName, commitSha);
         }
         else if (res.some(r => r === 'success')) {
             LOG.debug('Sending success status.');
-            api.createStatus('success', $$`context`, $$`success`, name, sha);
+            api.createStatus('success', $$`context`, $$`success`, masterName, commitSha);
         }
         else {
             LOG.debug('Sending success status based on no version number being found.');
-            api.createStatus('success', $$`context`, $$`invalid`, name, sha);
+            api.createStatus('success', $$`context`, $$`invalid`, masterName, commitSha);
         }
     }, (...errs) => {
         LOG.error('It is not supposed to be possible to error in this way.... what did you dooooo?!\n' + errs);
