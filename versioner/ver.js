@@ -70,11 +70,11 @@ exports.run = (api, event) => {
         }));
     }
     Promise.all(promises).then(res => {
-        if (res.some(r => 'failure')) {
+        if (res.some(r => r === 'failure')) {
             LOG.debug('Sending failure status.');
             api.createStatus('failure', $$`context`, $$`failure`, name, sha);
         }
-        else if (res.some(r => 'success')) {
+        else if (res.some(r => r === 'success')) {
             LOG.debug('Sending success status.');
             api.createStatus('success', $$`context`, $$`success`, name, sha);
         }
